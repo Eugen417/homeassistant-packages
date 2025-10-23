@@ -1,0 +1,184 @@
+modbus:
+  - name: IPPON
+    type: tcp
+    host: 192.168.1.27 # Замените на ваш IP адрес
+    port: 502
+    delay: 5
+    message_wait_milliseconds: 30
+    timeout: 5
+    sensors:
+
+# Входные данные напряжение и частота
+        
+      # Входное напряжение фазы R (upsESystemInputVoltage, адрес 0x0084 = 132)
+      - name: "IPPON Входное напряжение фазы R"
+        state_class: measurement
+        device_class: voltage
+        slave: 1
+        address: 132
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1  # Добавляем точность до 1 знака после запятой
+        unit_of_measurement: "V"
+        scan_interval: 10
+
+      # Входная частота (upsESystemInputFrequency, адрес 0x0081 = 129)
+      - name: "IPPON Входная частота"
+        state_class: measurement
+        device_class: frequency
+        slave: 1
+        address: 129
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1  # Добавляем точность до 1 знака после запятой
+        unit_of_measurement: "Hz"
+        scan_interval: 10
+
+# Выходные данные напряжение и частота
+
+      # Выходная частота (upsESystemOutFrequency, адрес 0x0090 = 144)
+      - name: "IPPON Выходная частота"
+        state_class: measurement
+        device_class: frequency
+        slave: 1
+        address: 144
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1  # Добавляем точность до 1 знака после запятой
+        unit_of_measurement: "Hz"
+        scan_interval: 10
+
+      # Выходное напряжение (upsESystemOuttVoltage, адрес 0x0093 = 147)
+      - name: "IPPON Выходное напряжение"
+        state_class: measurement
+        device_class: voltage
+        slave: 1
+        address: 147
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1  # Добавляем точность до 1 знака после запятой
+        unit_of_measurement: "V"
+        scan_interval: 10
+
+# Состояние батареи уровень заряда время работы от батареи время до полной разрядки температура ИПБ
+
+      # Температура ИБП (адрес 0x0080 = 128)
+      - name: "IPPON Температура ИБП"
+        state_class: measurement
+        device_class: temperature
+        slave: 1
+        address: 128
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        scan_interval: 10
+
+     # Состояние заряда батареи (адрес 169)
+      - name: "IPPON Уровень заряда батареи"
+        state_class: measurement
+        device_class: battery
+        slave: 1
+        address: 169
+        input_type: holding
+        data_type: uint16
+        unit_of_measurement: "%"
+        scan_interval: 10
+        
+      # Напряжение Батареи (upsEPositiveBatteryVoltage, адрес 0x00AA = 170)
+      - name: "IPPON Напряжение Батареи"
+        state_class: measurement
+        device_class: voltage
+        slave: 1
+        address: 170
+        input_type: holding
+        data_type: uint16
+        scale: 0.1
+        precision: 1  # Добавляем точность до 1 знака после запятой
+        unit_of_measurement: "V"
+        scan_interval: 10
+
+      # Время батарейной поддержки до полной разрядки (минуты, адрес 165)
+      - name: "IPPON Время поддержки минуты"
+        state_class: measurement
+        device_class: duration
+        slave: 1
+        address: 165
+        input_type: holding
+        data_type: uint16
+        unit_of_measurement: "min"
+        scan_interval: 10
+
+      # Время батарейной поддержки до полной разрядки (секунды, адрес 166)
+#      - name: "IPPON Время поддержки секунды"
+#        state_class: measurement
+#        device_class: duration
+#        slave: 1
+#        address: 166
+#        input_type: holding
+#        data_type: uint16
+#        unit_of_measurement: "s"
+#        scan_interval: 10
+
+############################# Связка датчиков ##################################
+      # Текущие статус ИБП числовые выражения (адрес 112)
+      - name: "IPPON UPS numeric State"
+        state_class: measurement
+        device_class: enum
+        slave: 1
+        address: 112
+        input_type: holding
+        data_type: uint16
+        scan_interval: 5
+
+# Шаблоны
+# Вспомогательный датчик преобразующий числовые выражения в текстовые
+
+template:
+  sensor:
+    - name: "IPPON Статус ИБП"
+      unique_id: ippon_status_text
+      state: >
+        {% set status = states('sensor.ippon_ups_numeric_state')|int %}
+        {% if status is defined %}
+          {% if status == 1 %}
+            power-on
+          {% elif status == 2 %}
+            stand-by
+          {% elif status == 3 %}
+            by-pass
+          {% elif status == 4 %}
+            line
+          {% elif status == 5 %}
+            battery
+          {% elif status == 6 %}
+            battery-test
+          {% elif status == 7 %}
+            fault
+          {% elif status == 8 %}
+            converter
+          {% elif status == 9 %}
+            eco
+          {% elif status == 10 %}
+            shutdown
+          {% elif status == 11 %}
+            on-booster
+          {% elif status == 12 %}
+            on-reducer
+          {% elif status == 13 %}
+            other
+          {% else %}
+            unknown
+          {% endif %}
+        {% else %}
+          no data
+        {% endif %}
+      device_class: enum
+      icon: mdi:battery
+      unit_of_measurement: ""
+      state_class: measurement
