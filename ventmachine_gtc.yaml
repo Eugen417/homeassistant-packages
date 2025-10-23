@@ -1,0 +1,409 @@
+# Конфигурация Установки Ventmachine с контроллером GTC Syberia 5
+# Конфигурация Modbus
+modbus:
+- name: GTC
+  type: tcp
+  host: 192.168.4.184   # укажите IP адрес
+  port: 22229           # укажите порт, порт по умолчанию 502
+  delay: 5
+  message_wait_milliseconds: 30
+  timeout: 5
+  sensors:
+  
+    - name: gtc_statе_0  # Текущее состояние установки State_0
+      slave: 1
+      address: 2
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_state_1  # Текущее состояние установки State_1
+      slave: 1
+      address: 3
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_error_code  # Текущие ошибки Error_Code
+      slave: 1
+      address: 4
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_error_code_1  # Текущие ошибки Error_Code_1
+      slave: 1
+      address: 5
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_current_temp   # Текущая температура установки внутри канала
+      state_class: measurement
+      device_class: temperature
+      scan_interval: 10
+      unit_of_measurement: °C
+      precision: 1
+      scale: 0.1
+      address: 7
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_Filter_state  # Состояние загрязнения фильтра в %
+      state_class: measurement
+      unit_of_measurement: "%"
+      slave: 1
+      address: 14
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_current_fan_speed  # Текущая скорость вращения вентилятора
+      state_class: measurement
+      scan_interval: 10
+      address: 25
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_target_temp  # Заданная температура установке
+      state_class: measurement
+      device_class: temperature
+      scan_interval: 10
+      unit_of_measurement: °C
+      precision: 1
+      scale: 0.1
+      address: 31
+      data_type: uint16
+      
+    - name: gtc_target_fan_speed  # Заданная скорость вращения вентилятора
+      state_class: measurement
+      scan_interval: 10
+      slave: 1
+      address: 32
+      data_type: uint16
+      
+    - name: gtc_room_temp  #Температура комноты с пульта управления
+      state_class: measurement
+      device_class:  temperature
+      scan_interval: 10
+      unit_of_measurement: "°C"
+      precision: 1
+      scale: 0.1
+      address: 57
+      input_type: input
+      data_type: uint16
+      
+    - name: gtc_room_humidity  #Влажность комноты с пульта управления
+      state_class: measurement
+      device_class: humidity
+      unit_of_measurement: "%"
+      scan_interval: 10
+      address: 58
+      input_type: input
+      data_type: uint16
+      
+#      state_class: measurement
+#      device_class: carbon_dioxide
+#      unit_of_measurement: "ppm"
+#      scan_interval: 10
+#      address: 61
+#      input_type: input
+#      data_type: uint16
+      
+#    - name:  gtc_room_CO2_K2  #Уровень CO2 комноты с пульта управления (скорректированное значение)
+#      state_class: measurement
+#      device_class: carbon_dioxide
+#      unit_of_measurement: "ppm"
+#      scan_interval: 10
+#      address: 61
+#      input_type: input
+#      data_type: uint16
+###########################################################
+#    - name: gtc_error_code_2  # Текущие ошибки Error_Code_2
+#      state_class: measurement
+#      slave: 1
+#      address: 69
+#      input_type: input
+#      data_type: uint16
+      
+#    - name: gtc_error_code_3  # Текущие ошибки Error_Code_3
+#      state_class: measurement
+#      slave: 1
+#      address: 70
+#      input_type: input
+#      data_type: uint16
+#      
+#########################################_modbus_end_###########################
+
+
+# Конфигурация шаблонов для управления установкой и получения информации о её текщем состоянии
+
+template:
+
+#Переключатель температуры, задаёт и отражает выбранную температуру
+  - number:
+      - name: GTC Set Temp
+        icon: mdi:thermometer-lines
+        state: "{{ states('sensor.gtc_target_temp') }}"
+        min: 5
+        max: 30
+        step: 0.5
+        set_value:
+          action: modbus.write_register
+          data:
+            hub: GTC
+            unit: 1
+            address: 31
+            value: "{{ (value|float * 10)|int }}"
+
+# УправлениеВкл/Выкл и скоростью вентилятора, отражает текущее состояние и скорость
+
+  - fan:
+      - name: "GTC Fan" 
+        unique_id: gtc_fan
+        state: "{{ states('sensor.gtc_current_fan_speed')|int > 0 }}"
+        
+        turn_on:
+          sequence:
+            - service: modbus.write_register
+              data:
+                address: 2
+                hub: GTC
+                unit: 1
+                value: "1"
+
+        turn_off:
+          sequence:
+            - service: modbus.write_register
+              data:
+                address: 2
+                hub: GTC
+                unit: 1
+                value: "1"
+            - delay:
+                seconds: 1
+            - service: modbus.write_register
+              data:
+                address: 2
+                hub: GTC
+                unit: 1
+                value: "0"
+
+        speed_count: 10
+        
+        percentage: >
+                  {% set current_speed = states('sensor.gtc_current_fan_speed')|int %}
+                  {% if current_speed >= 1 and current_speed <= 10 %}
+                    {{ current_speed * 10 }}
+                  {% else %}
+                    0
+                  {% endif %}
+
+        set_percentage:
+          choose:
+            - conditions:
+                - condition: state
+                  entity_id: fan.gtc_fan
+                  state: "on"
+              sequence:
+                - service: modbus.write_register
+                  data:
+                    address: 32
+                    hub: GTC
+                    unit: 1
+                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else none}}"
+
+            - conditions:
+                - condition: state
+                  entity_id: fan.gtc_fan
+                  state: "off"
+              sequence:
+                - service: fan.turn_on
+                  target:
+                    entity_id: fan.gtc_fan
+                - delay:
+                    seconds: 1
+                - service: modbus.write_register
+                  data:
+                    address: 32
+                    hub: GTC
+                    unit: 1
+                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else none}}"
+#            - conditions:
+#                - attribute: percentage
+#                  condition: state
+#                  entity_id: fan.gtc_fan
+#                  state: "0"
+#              sequence:
+#                - action: fan.turn_off
+#                  target:
+#                  entity_id: fan.gtc_fan
+
+sensor:
+  - platform: template
+    sensors:
+#_Вывод информации о состоянии State_0, с адреса: 2_############################
+      
+      gts_state_0_info:
+        friendly_name: "Состояние State_0"
+        value_template: >
+          {% set status_code = states('sensor.gtc_state_0')|int %}
+          {% set status_info = ' ' %}
+          
+          {% if status_code|bitwise_and(1) %}
+            {% set status_info = status_info + 'Установка: включена' %}
+          {% else %}
+            {% set status_info = status_info + 'Установка: выключена' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(2) %}
+            {% set status_info = status_info + ', Переход к новому состоянию' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(64) %}
+            {% set status_info = status_info + ', Режим нагрева: доступен' %}
+          {% else %}
+            {% set status_info = status_info + ', Режим нагрева: недоступен' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(128) %}
+            {% set status_info = status_info + ', Режим охлаждения: доступен' %}
+          {% else %}
+            {% set status_info = status_info + ', Режим охлаждения: недоступен' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(256) %}
+            {% set status_info = status_info + ', Текущий режим: нагрев' %}
+          {% else %}
+            {% set status_info = status_info + ', Текущий режим: охлаждение' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(512) %}
+            {% set status_info = status_info + ', Таймер на сутки: установлен' %}
+          {% else %}
+            {% set status_info = status_info + ', Таймер на сутки: отсутствует' %}
+          {% endif %}
+          
+          {% if status_code|bitwise_and(1024) %}
+            {% set status_info = status_info + ', Таймер на неделю: установлен.' %}
+          {% else %}
+            {% set status_info = status_info + ', Таймер на неделю: отсутствует.' %}
+          {% endif %}
+          
+          {{ status_info|trim(', ') }}
+          
+#_Вывод информации о состоянии State_1, с адреса: 3_############################     
+      gtc_state_1_info:
+        friendly_name: "Состояние State_1"
+        value_template: >
+          {% set status_code = states('sensor.gtc_state_1')|int %}
+          {% set power_status = states('sensor.gtc_state_0')|int %}
+          {% set status_info = '' %}
+
+          {% if status_code == 0 %}
+            {% if power_status == 320 %}
+              {% set status_info = 'Выключено' %}
+            {% elif power_status == 321 %}
+              {% set status_info = 'Работает' %}
+            {% else %}
+              {% set status_info = 'Неизвестное состояние питания' %}
+            {% endif %}
+          {% elif status_code == 1 %}
+            {% set status_info = 'Открытие заслонки' %}
+          {% elif status_code == 2 %}
+            {% set status_info = 'Предподогрев калорифера' %}
+          {% elif status_code == 3 %}
+            {% set status_info = 'Запуск вентилятора' %}
+          {% elif status_code == 4 %}
+            {% set status_info = 'Северный старт' %}
+          {% elif status_code == 5 %}
+            {% set status_info = 'Выбег вентилятора' %}
+          {% elif status_code == 6 %}
+            {% set status_info = 'Закрытие заслонки' %}
+          {% elif status_code == 7 %}
+            {% set status_info = 'Продув электрического калорифера' %}
+          {% elif status_code == 8 %}
+            {% set status_info = 'Открытие клапана горячей воды' %}
+          {% elif status_code == 9 %}
+            {% set status_info = 'Закрытие клапана горячей воды' %}
+          {% elif status_code == 10 %}
+            {% set status_info = 'Открытие клапана холодной воды' %}
+          {% elif status_code == 11 %}
+            {% set status_info = 'Закрытие клапана холодной воды' %}
+          {% elif status_code == 12 %}
+            {% set status_info = 'Разгон ротора' %}
+          {% else %}
+            {% set status_info = 'Неизвестное состояние' %}
+          {% endif %}
+          {{ status_info }}
+
+#_Вывод информации о состоянии ERROR_CODE_1, с адреса: 5_############################
+      gtc_error_code_1_encode:
+        friendly_name: "Ошибка Error_Code_1"
+        value_template: >
+          {% set error_code = states('sensor.gtc_error_code_1')|int %}
+          {% set errors = [] %}
+
+          {% if error_code|bitwise_and(1) %}
+            {% set errors = errors + ['Обрыв/КЗ датчика T1'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(2) %}
+            {% set errors = errors + ['Обрыв/КЗ датчика T2'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(4) %}
+            {% set errors = errors + ['Обрыв/КЗ датчика T3'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(8) %}
+            {% set errors = errors + ['Ошибка датчика давления D5'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(16) %}
+            {% set errors = errors + ['Перегрев системы'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(32) %}
+            {% set errors = errors + ['Недогрев системы'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(64) %}
+            {% set errors = errors + ['Блокировка дистанционного управления'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(128) %}
+            {% set errors = errors + ['Автоснижение скорости вентилятора'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(512) %}
+            {% set errors = errors + ['Обрыв датчика давления вентилятора'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(1024) %}
+            {% set errors = errors + ['Режим северный старт'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(2048) %}
+            {% set errors = errors + ['Температура рекуператора < 0°C'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(4096) %}
+            {% set errors = errors + ['Температура рекуператора > заданной'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(8192) %}
+            {% set errors = errors + ['Обмерзание рекуператора'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(16384) %}
+            {% set errors = errors + ['Автоснижение скорости при обмерзании'] %}
+          {% endif %}
+
+          {% if error_code|bitwise_and(32768) %}
+            {% set errors = errors + ['Режим плавного снижения скорости'] %}
+          {% endif %}
+
+          {% if errors|length > 0 %}
+            {{ errors|join(', ') }}
+          {% else %}
+            "Нет ошибок"
+          {% endif %}
+
+########################## Конец конфигурации шаблонов #########################
+#### Конец конфигурациии Установки Ventmachine с контроллером GTC Syberia 5 ####
