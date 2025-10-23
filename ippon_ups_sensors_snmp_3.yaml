@@ -1,0 +1,199 @@
+# packages/IPPON_ippon_snmp/IPPON_sensors_snmp_3.yaml
+# интеграция мониторинга ибп ippon посредством сетевой карты SNMP II по протоколу snmp v3
+# в вебморде карты создайте или используйте имеющегося пользователя со следующими настройками:
+# Уровень доступа: "authNoPriv",  Аутентификация: "HMAC-MD5"
+sensor:
+  # Датчик 1: Статус батареи
+  - platform: snmp
+    name: "IPPON Battery Status"
+    host: 192.168.1.27      # исправьте на свои значения во всех датчиках
+    version: "3"
+    username: "HomeAs"      # исправьте на свои значения во всех датчиках
+    auth_key: "HomeAs190"   # исправьте на свои значения во всех датчиках
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.2.1.33.1.2.1.0
+    value_template: >
+      {% set status = {1: 'unknown', 2: 'normal', 3: 'low', 4: 'depleted'} %}
+      {{ status.get(value|int, 'unknown') }}
+
+  # Датчик 2: Оставшееся время работы от батареи
+  - platform: snmp
+    name: "IPPON Battery Runtime"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.2.1.33.1.2.3.0
+    unit_of_measurement: "min"
+    value_template: "{{ value|int }}"
+    state_class: measurement
+    device_class: duration
+
+  # Датчик 3: Источник питания ИБП
+  - platform: snmp
+    name: "IPPON Output Source"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.2.1.33.1.4.1.0
+    value_template: >
+      {% set sources = {1: 'other', 2: 'none', 3: 'normal', 4: 'bypass', 5: 'battery', 6: 'booster', 7: 'reducer'} %}
+      {{ sources.get(value|int, 'other') }}
+
+  # Датчик 4: Напряжение батареи
+  - platform: snmp
+    name: "IPPON Battery Voltage"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.3.5.0
+    unit_of_measurement: "V"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: voltage
+
+  # Датчик 5: Частота входного напряжения
+  - platform: snmp
+    name: "IPPON Input Frequency"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.16.1.2.1
+    unit_of_measurement: "Hz"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: frequency
+  
+  # Датчик 6: Напряжение входного напряжения
+  - platform: snmp
+    name: "IPPON Input Voltage"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.16.1.3.1
+    unit_of_measurement: "V"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: voltage
+    
+  # Датчик 7: Частота выходного напряжения
+  - platform: snmp
+    name: "IPPON Output Frequency"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.18.1.2.1
+    unit_of_measurement: "Hz"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: frequency
+    
+  # Датчик 8: Напряжение выходного напряжения
+  - platform: snmp
+    name: "IPPON Output Voltage"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.18.1.3.1
+    unit_of_measurement: "V"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: voltage
+    
+  # Датчик 9: Общий статус системы ИБП
+  - platform: snmp
+    name: "IPPON System Status"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.1.0
+    value_template: >
+      {% set statuses = {
+        1: 'power-on',
+        2: 'stand-by',
+        3: 'by-pass',
+        4: 'line',
+        5: 'battery',
+        6: 'battery-test',
+        7: 'fault',
+        8: 'converter',
+        9: 'eco',
+        10: 'shutdown',
+        11: 'on-booster',
+        12: 'on-reducer',
+        13: 'other'
+      } %}
+      {{ statuses.get(value|int, 'other') }}
+      
+  # Датчик 10: Температура системы ИБП
+  - platform: snmp
+    name: "IPPON System Temperature"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.2.2.0
+    unit_of_measurement: "°C"
+    value_template: "{{ (value|int / 10) | round(1) }}"
+    state_class: measurement
+    device_class: temperature
+    
+  # Датчик 11: Температура батареи ИБП
+  - platform: snmp
+    name: "IPPON Battery Temperature"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.2.1.33.1.2.7.0
+    unit_of_measurement: "°C"
+    value_template: "{{ value|int }}"
+    state_class: measurement
+    device_class: temperature
+    
+  # Датчик 12: Результат теста батареи
+  - platform: snmp
+    name: "IPPON Battery Test Result"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.7.3.0
+    value_template: >
+      {% set results = {
+        1: 'idle', 2: 'processing', 3: 'noFailure', 4: 'failureOrWarning',
+        5: 'notPossible', 6: 'testCancel'
+      } %}
+      {{ results.get(value|int, 'unknown') }}
+      
+  # Датчик 13: Оставшийся заряд батареи
+  - platform: snmp
+    name: "IPPON Battery Charge"
+    host: 192.168.1.27
+    version: "3"
+    username: "HomeAs"
+    auth_key: "HomeAs190"
+    auth_protocol: "hmac-md5"
+    baseoid: .1.3.6.1.4.1.935.10.1.1.3.4.0
+    unit_of_measurement: "%"
+    value_template: "{{ value|int }}"
+    state_class: measurement
+    device_class: battery
