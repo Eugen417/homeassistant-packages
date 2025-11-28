@@ -1,163 +1,138 @@
-# Конфигурация Установки Ventmachine с контроллером GTC Syberia 5
-# Конфигурация Modbus
+# Конфигурация Установки Ventmachine с контроллером GTC Syberia 5 для Home Assistant
+# Грядущие в 2026 году изменения учтены!
+# --- Конфигурация Modbus ---
 modbus:
-- name: GTC
-  type: tcp
-  host: 192.168.4.184   # укажите IP адрес
-  port: 22229           # укажите порт, порт по умолчанию 502
-  delay: 5
-  message_wait_milliseconds: 30
-  timeout: 5
-  sensors:
-  
-    - name: gtc_statе_0  # Текущее состояние установки State_0
-      slave: 1
-      address: 2
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_state_1  # Текущее состояние установки State_1
-      slave: 1
-      address: 3
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_error_code  # Текущие ошибки Error_Code
-      slave: 1
-      address: 4
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_error_code_1  # Текущие ошибки Error_Code_1
-      slave: 1
-      address: 5
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_current_temp   # Текущая температура установки внутри канала
-      state_class: measurement
-      device_class: temperature
-      scan_interval: 10
-      unit_of_measurement: °C
-      precision: 1
-      scale: 0.1
-      address: 7
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_Filter_state  # Состояние загрязнения фильтра в %
-      state_class: measurement
-      unit_of_measurement: "%"
-      slave: 1
-      address: 14
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_current_fan_speed  # Текущая скорость вращения вентилятора
-      state_class: measurement
-      scan_interval: 10
-      address: 25
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_target_temp  # Заданная температура установке
-      state_class: measurement
-      device_class: temperature
-      scan_interval: 10
-      unit_of_measurement: °C
-      precision: 1
-      scale: 0.1
-      address: 31
-      data_type: uint16
-      
-    - name: gtc_target_fan_speed  # Заданная скорость вращения вентилятора
-      state_class: measurement
-      scan_interval: 10
-      slave: 1
-      address: 32
-      data_type: uint16
-      
-    - name: gtc_room_temp  #Температура комноты с пульта управления
-      state_class: measurement
-      device_class:  temperature
-      scan_interval: 10
-      unit_of_measurement: "°C"
-      precision: 1
-      scale: 0.1
-      address: 57
-      input_type: input
-      data_type: uint16
-      
-    - name: gtc_room_humidity  #Влажность комноты с пульта управления
-      state_class: measurement
-      device_class: humidity
-      unit_of_measurement: "%"
-      scan_interval: 10
-      address: 58
-      input_type: input
-      data_type: uint16
-      
-#      state_class: measurement
-#      device_class: carbon_dioxide
-#      unit_of_measurement: "ppm"
-#      scan_interval: 10
-#      address: 61
-#      input_type: input
-#      data_type: uint16
-      
-#    - name:  gtc_room_CO2_K2  #Уровень CO2 комноты с пульта управления (скорректированное значение)
-#      state_class: measurement
-#      device_class: carbon_dioxide
-#      unit_of_measurement: "ppm"
-#      scan_interval: 10
-#      address: 61
-#      input_type: input
-#      data_type: uint16
-###########################################################
-#    - name: gtc_error_code_2  # Текущие ошибки Error_Code_2
-#      state_class: measurement
-#      slave: 1
-#      address: 69
-#      input_type: input
-#      data_type: uint16
-      
-#    - name: gtc_error_code_3  # Текущие ошибки Error_Code_3
-#      state_class: measurement
-#      slave: 1
-#      address: 70
-#      input_type: input
-#      data_type: uint16
-#      
-#########################################_modbus_end_###########################
+  - name: GTC
+    type: tcp
+    host: 192.168.4.184   # укажите IP адрес
+    port: 22229           # укажите порт, порт по умолчанию 502
+    delay: 5
+    message_wait_milliseconds: 30
+    timeout: 5
+    sensors:
+    
+      - name: gtc_statе_0  # Текущее состояние установки State_0 (Адрес 2)
+        slave: 1
+        address: 2
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_state_1  # Текущее состояние установки State_1 (Адрес 3)
+        slave: 1
+        address: 3
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_error_code  # Текущие ошибки Error_Code (Адрес 4)
+        slave: 1
+        address: 4
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_error_code_1  # Текущие ошибки Error_Code_1 (Адрес 5)
+        slave: 1
+        address: 5
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_current_temp   # Текущая температура установки внутри канала (Адрес 7)
+        state_class: measurement
+        device_class: temperature
+        scan_interval: 10
+        unit_of_measurement: "°C"
+        precision: 1
+        scale: 0.1
+        address: 7
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_Filter_state  # Состояние загрязнения фильтра в % (Адрес 14)
+        state_class: measurement
+        unit_of_measurement: "%"
+        slave: 1
+        address: 14
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_current_fan_speed  # Текущая скорость вращения вентилятора (1-10) (Адрес 25)
+        state_class: measurement
+        scan_interval: 10
+        address: 25
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_target_temp  # Заданная температура установке (Адрес 31)
+        state_class: measurement
+        device_class: temperature
+        scan_interval: 10
+        unit_of_measurement: "°C"
+        precision: 1
+        scale: 0.1
+        address: 31
+        data_type: uint16
+        
+      - name: gtc_target_fan_speed  # Заданная скорость вращения вентилятора (1-10) (Адрес 32)
+        state_class: measurement
+        scan_interval: 10
+        slave: 1
+        address: 32
+        data_type: uint16
+        
+      - name: gtc_room_temp  # Температура комнаты с пульта управления (Адрес 57)
+        state_class: measurement
+        device_class:  temperature
+        scan_interval: 10
+        unit_of_measurement: "°C"
+        precision: 1
+        scale: 0.1
+        address: 57
+        input_type: input
+        data_type: uint16
+        
+      - name: gtc_room_humidity  # Влажность комнаты с пульта управления (Адрес 58)
+        state_class: measurement
+        device_class: humidity
+        unit_of_measurement: "%"
+        scan_interval: 10
+        address: 58
+        input_type: input
+        data_type: uint16
+        
+#      - name:  gtc_room_CO2_K2  #Уровень CO2 комнаты с пульта управления (скорректированное значение) (Адрес 61)
+#        state_class: measurement
+#        device_class: carbon_dioxide
+#        unit_of_measurement: "ppm"
+#        scan_interval: 10
+#        address: 61
+#        input_type: input
+#        data_type: uint16
 
-
-# Конфигурация шаблонов для управления установкой и получения информации о её текщем состоянии
-
+# --- Конфигурация Шаблонов (Template) ---
 template:
 
-#Переключатель температуры, задаёт и отражает выбранную температуру
+# Переключатель температуры
   - number:
       - name: GTC Set Temp
         icon: mdi:thermometer-lines
-        state: "{{ states('sensor.gtc_target_temp') }}"
+        state: "{{ states('sensor.gtc_target_temp') | default(0) }}"
         min: 5
         max: 30
         step: 0.5
         set_value:
-          action: modbus.write_register
-          data:
-            hub: GTC
-            unit: 1
-            address: 31
-            value: "{{ (value|float * 10)|int }}"
+          - service: modbus.write_register
+            data:
+              hub: GTC
+              unit: 1
+              address: 31 # Регистр целевой температуры
+              value: "{{ (value|float * 10)|int }}"
 
-# УправлениеВкл/Выкл и скоростью вентилятора, отражает текущее состояние и скорость
-
+# Управление Вентилятором (Fan)
   - fan:
       - name: "GTC Fan" 
         unique_id: gtc_fan
-        state: "{{ states('sensor.gtc_current_fan_speed')|int > 0 }}"
+        state: "{{ states('sensor.gtc_current_fan_speed')|int(default=0) > 0 }}"
         
+        # turn_on отправляет 1 на регистр включения (Адрес 2)
         turn_on:
           sequence:
             - service: modbus.write_register
@@ -167,6 +142,7 @@ template:
                 unit: 1
                 value: "1"
 
+        # turn_off отправляет 0 на регистр включения (Адрес 2)
         turn_off:
           sequence:
             - service: modbus.write_register
@@ -186,32 +162,31 @@ template:
 
         speed_count: 10
         
+        # Отображение текущей скорости (1-10 Modbus -> 10%-100% HA)
         percentage: >
-                  {% set current_speed = states('sensor.gtc_current_fan_speed')|int %}
-                  {% if current_speed >= 1 and current_speed <= 10 %}
-                    {{ current_speed * 10 }}
+                  {% set speed_state = states('sensor.gtc_current_fan_speed') %}
+                  {% if speed_state is not none and speed_state not in ['unknown', 'unavailable'] %}
+                    {% set current_speed = speed_state | float(default=0) | round(0) %}
+                    {% if current_speed >= 1 and current_speed <= 10 %}
+                      {{ (current_speed * 10) | int }}
+                    {% else %}
+                      0
+                    {% endif %}
                   {% else %}
                     0
                   {% endif %}
 
+        # Установка новой скорости
         set_percentage:
           choose:
-            - conditions:
-                - condition: state
-                  entity_id: fan.gtc_fan
-                  state: "on"
-              sequence:
-                - service: modbus.write_register
-                  data:
-                    address: 32
-                    hub: GTC
-                    unit: 1
-                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else none}}"
-
+            
+            # СЛУЧАЙ 1: Вентилятор был ВЫКЛЮЧЕН, но пользователь сдвинул слайдер (percentage > 0)
             - conditions:
                 - condition: state
                   entity_id: fan.gtc_fan
                   state: "off"
+                - condition: template
+                  value_template: "{{ percentage > 0 }}" 
               sequence:
                 - service: fan.turn_on
                   target:
@@ -220,29 +195,31 @@ template:
                     seconds: 1
                 - service: modbus.write_register
                   data:
-                    address: 32
+                    address: 32 # Регистр скорости
                     hub: GTC
                     unit: 1
-                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else none}}"
-#            - conditions:
-#                - attribute: percentage
-#                  condition: state
-#                  entity_id: fan.gtc_fan
-#                  state: "0"
-#              sequence:
-#                - action: fan.turn_off
-#                  target:
-#                  entity_id: fan.gtc_fan
+                    # БЕЗОПАСНОСТЬ: Если результат 0 (например, 1%-9%), отправляем МИНИМУМ 1
+                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else 1 }}"
+            
+            # СЛУЧАЙ 2: Вентилятор был ВКЛЮЧЕН (включает случай, когда слайдер на 0%)
+            - conditions:
+                - condition: template
+                  value_template: "{{ percentage >= 0 }}" 
+              sequence:
+                - service: modbus.write_register
+                  data:
+                    address: 32 # Регистр скорости
+                    hub: GTC
+                    unit: 1
+                    # БЕЗОПАСНОСТЬ: Если (percentage / 10) = 0 (слайдер на 0%), отправляем МИНИМУМ 1
+                    value: "{{ (percentage / 10)|int if (percentage / 10)|int > 0 else 1 }}" 
 
-sensor:
-  - platform: template
-    sensors:
-#_Вывод информации о состоянии State_0, с адреса: 2_############################
-      
-      gts_state_0_info:
-        friendly_name: "Состояние State_0"
-        value_template: >
-          {% set status_code = states('sensor.gtc_state_0')|int %}
+# --- Темплейтные сенсоры (для отображения статуса и ошибок) ---
+  - sensor:
+      # Вывод информации о состоянии State_0 (Адрес 2)
+      - name: "Состояние State_0"
+        state: >
+          {% set status_code = states('sensor.gtc_statе_0')|int(default=0) %}
           {% set status_info = ' ' %}
           
           {% if status_code|bitwise_and(1) %}
@@ -287,12 +264,11 @@ sensor:
           
           {{ status_info|trim(', ') }}
           
-#_Вывод информации о состоянии State_1, с адреса: 3_############################     
-      gtc_state_1_info:
-        friendly_name: "Состояние State_1"
-        value_template: >
-          {% set status_code = states('sensor.gtc_state_1')|int %}
-          {% set power_status = states('sensor.gtc_state_0')|int %}
+      # Вывод информации о состоянии State_1 (Адрес 3)
+      - name: "Состояние State_1"
+        state: >
+          {% set status_code = states('sensor.gtc_state_1')|int(default=0) %}
+          {% set power_status = states('sensor.gtc_statе_0')|int(default=0) %}
           {% set status_info = '' %}
 
           {% if status_code == 0 %}
@@ -332,11 +308,10 @@ sensor:
           {% endif %}
           {{ status_info }}
 
-#_Вывод информации о состоянии ERROR_CODE_1, с адреса: 5_############################
-      gtc_error_code_1_encode:
-        friendly_name: "Ошибка Error_Code_1"
-        value_template: >
-          {% set error_code = states('sensor.gtc_error_code_1')|int %}
+      # Вывод информации о состоянии ERROR_CODE_1 (Адрес 5)
+      - name: "Ошибка Error_Code_1"
+        state: >
+          {% set error_code = states('sensor.gtc_error_code_1')|int(default=0) %}
           {% set errors = [] %}
 
           {% if error_code|bitwise_and(1) %}
@@ -404,6 +379,3 @@ sensor:
           {% else %}
             "Нет ошибок"
           {% endif %}
-
-########################## Конец конфигурации шаблонов #########################
-#### Конец конфигурациии Установки Ventmachine с контроллером GTC Syberia 5 ####
