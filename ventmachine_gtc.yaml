@@ -69,7 +69,7 @@ modbus:
         precision: 1
         scale: 0.1
         address: 31
-        data_type: uint16
+        data_type: int16
         
       - name: gtc_target_fan_speed  # Заданная скорость вращения вентилятора (1-10) (Адрес 32)
         state_class: measurement
